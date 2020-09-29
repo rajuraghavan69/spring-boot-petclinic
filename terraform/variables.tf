@@ -1,3 +1,9 @@
+#variable "resource_name_prefix" {
+#  type        = string
+#  description = "Resource prefix"
+#  default     = "kedaeh"
+#}
+
 # Tags
 variable "tag_env" {
   type        = string
