@@ -1,40 +1,8 @@
-variable "service_principal_client_id" {
-  type        = string
-  description = "Client ID"
-}
-
-variable "service_principal_client_secret" {
-  type        = string
-  description = "Client Secret"
-}
-
-variable "resource_name_prefix" {
-  type        = string
-  description = "Resource prefix"
-  default     = "kedaeh"
-}
-
 # Tags
 variable "tag_env" {
   type        = string
   description = "The environment tag name"
   default     = "dev"
-}
-
-variable "node_count" {
-  default = 3
-}
-
-variable "vm_size" {
-  default = "Standard_F4s_v2"
-}
-
-variable "dns_prefix" {
-  default = "keda-cluster"
-}
-
-variable cluster_name {
-  default = "keda-cluster"
 }
 
 variable resource_group_name {

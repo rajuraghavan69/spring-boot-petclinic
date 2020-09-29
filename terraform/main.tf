@@ -10,25 +10,6 @@ resource "azurerm_resource_group" "rg_keda" {
   location = var.location
 }
 
-# Azure container registry
-
-resource "azurerm_container_registry" "acr" {
-  name                = "${var.resource_name_prefix}acr"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  sku                 = "Premium"
-  admin_enabled       = true
-}
-
-# AKS cluster
-
-
-resource "azurerm_role_assignment" "acrpull_role_aks_app" {
-  scope                            = azurerm_resource_group.rg_keda.id
-  role_definition_name             = "AcrPull"
-  principal_id                     = var.service_principal_client_id
-  skip_service_principal_aad_check = true
-}
 
 #
 
