@@ -6,7 +6,7 @@ provider "azurerm" {
 }
 resource "azurerm_resource_group" "mqktest" {
   name     = "atos-connector"
-  location = "Southeast Asia"
+  location = "Central US"
 }
 
 resource "azurerm_eventhub_namespace" "mqkconnector" {
