@@ -11,8 +11,6 @@ resource "azurerm_resource_group" "rg_keda" {
 }
 
 
-#
-
 # Event Hubs
 
 resource "azurerm_eventhub_namespace" "hubns" {
