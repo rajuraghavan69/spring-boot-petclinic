@@ -5,8 +5,8 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "mqktest" {
-  name     = "atos-connector"
-  location = "Central US"
+  name     = "atos-group"
+  location = "East US"
 }
 
 resource "azurerm_eventhub_namespace" "mqkconnector" {
@@ -14,7 +14,7 @@ resource "azurerm_eventhub_namespace" "mqkconnector" {
   location            = azurerm_resource_group.mqktest.location
   resource_group_name = azurerm_resource_group.mqktest.name
   sku                 = "Standard"
-  capacity            = 12
+  capacity            = 2
   tags = {
     environment = "Production"
   }
@@ -23,29 +23,29 @@ resource "azurerm_eventhub" "providertesttpk1" {
   name                = "providerTestTopic1"
   namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
   resource_group_name = azurerm_resource_group.mqktest.name
-  partition_count     = 5
-  message_retention   = 7
+  partition_count     = 2
+  message_retention   = 2
 }
 resource "azurerm_eventhub" "providertesttpk2" {
   name                = "providerTestTopic2"
   namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
   resource_group_name = azurerm_resource_group.mqktest.name
-  partition_count     = 5
-  message_retention   = 7
+  partition_count     = 2
+  message_retention   = 2
 }
 resource "azurerm_eventhub" "providertesttpk3" {
   name                = "providerTestTopic3"
   namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
   resource_group_name = azurerm_resource_group.mqktest.name
-  partition_count     = 5
-  message_retention   = 7
+  partition_count     = 2
+  message_retention   = 2
 }
 resource "azurerm_eventhub" "providertesttpk4" {
   name                = "providerTestTopic4"
   namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
   resource_group_name = azurerm_resource_group.mqktest.name
-  partition_count     = 5
-  message_retention   = 7
+  partition_count     = 2
+  message_retention   = 2
 }
 
 resource "azurerm_eventhub_consumer_group" "hcaas1" {
