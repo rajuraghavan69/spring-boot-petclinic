@@ -15,7 +15,6 @@ resource "azurerm_eventhub_namespace" "mqkconnector" {
   resource_group_name = azurerm_resource_group.mqktest.name
   sku                 = "Standard"
   capacity            = 12
-  auto_inflate_enabled = true
   tags = {
     environment = "Production"
   }
