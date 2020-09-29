@@ -14,7 +14,7 @@ resource "azurerm_resource_group" "rg_keda" {
 # Event Hubs
 
 resource "azurerm_eventhub_namespace" "hubns" {
-  name                     = "${var.resource_name_prefix}-hubns-${var.tag_env}"
+  name                     = "mkqeventhub"
   resource_group_name      = azurerm_resource_group.rg_keda.name
   location                 = var.location
   sku                      = "Standard"
