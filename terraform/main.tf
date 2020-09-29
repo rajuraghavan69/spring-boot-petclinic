@@ -1,128 +1,80 @@
+# Configure the Azure Provider
 provider "azurerm" {
-  version = ">= 2.0"
+  # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
+  version = "=2.20.0"
   features {}
 }
-
-# Azure resource group
-
-resource "azurerm_resource_group" "rg_keda" {
-  name     = var.resource_group_name
-  location = var.location
+resource "azurerm_resource_group" "mqktest" {
+  name     = "atos-connector"
+  location = "Southeast Asia"
 }
 
-# Azure container registry
-
-resource "azurerm_container_registry" "acr" {
-  name                = "${var.resource_name_prefix}acr"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  sku                 = "Premium"
-  admin_enabled       = true
-}
-
-# AKS cluster
-
-resource "azurerm_kubernetes_cluster" "aks_app" {
-  name                = var.cluster_name
-  location            = azurerm_resource_group.rg_keda.location
-  resource_group_name = azurerm_resource_group.rg_keda.name
-  dns_prefix          = var.dns_prefix
-
-  default_node_pool {
-    name                = "default"
-    node_count          = var.node_count
-    vm_size             = var.vm_size
-    type                = "VirtualMachineScaleSets"
-    enable_auto_scaling = true
-    min_count           = 3
-    max_count           = 20
-    max_pods            = 100
-  }
-
-  service_principal {
-    client_id     = var.service_principal_client_id
-    client_secret = var.service_principal_client_secret
-  }
-
-  addon_profile {
-    kube_dashboard {
-      enabled = true
-    }
-  }
-
-  network_profile {
-    network_plugin = "azure"
-  }
-
+resource "azurerm_eventhub_namespace" "mqkconnector" {
+  name                = "mqk-namespace"
+  location            = azurerm_resource_group.mqktest.location
+  resource_group_name = azurerm_resource_group.mqktest.name
+  sku                 = "Standard"
+  capacity            = 12
+  auto_inflate_enabled = true
   tags = {
-    Environment = var.tag_env
+    environment = "Production"
   }
 }
-
-resource "azurerm_role_assignment" "acrpull_role_aks_app" {
-  scope                            = azurerm_resource_group.rg_keda.id
-  role_definition_name             = "AcrPull"
-  principal_id                     = var.service_principal_client_id
-  skip_service_principal_aad_check = true
+resource "azurerm_eventhub" "providertesttpk1" {
+  name                = "providerTestTopic1"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  partition_count     = 5
+  message_retention   = 7
+}
+resource "azurerm_eventhub" "providertesttpk2" {
+  name                = "providerTestTopic2"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  partition_count     = 5
+  message_retention   = 7
+}
+resource "azurerm_eventhub" "providertesttpk3" {
+  name                = "providerTestTopic3"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  partition_count     = 5
+  message_retention   = 7
+}
+resource "azurerm_eventhub" "providertesttpk4" {
+  name                = "providerTestTopic4"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  partition_count     = 5
+  message_retention   = 7
 }
 
-# Helm and KEDA installation
-
-provider "helm" {
-  version = ">= 0.7"
-
-  kubernetes {
-    host                   = azurerm_kubernetes_cluster.aks_app.kube_config.0.host
-    client_certificate     = base64decode(azurerm_kubernetes_cluster.aks_app.kube_config.0.client_certificate)
-    client_key             = base64decode(azurerm_kubernetes_cluster.aks_app.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.aks_app.kube_config.0.cluster_ca_certificate)
-    load_config_file       = false
-  }
+resource "azurerm_eventhub_consumer_group" "hcaas1" {
+  name                = "testConsumerGroup"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  eventhub_name       = azurerm_eventhub.providertesttpk1.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  user_metadata       = "some-meta-data-1"
 }
 
-resource "helm_release" "keda" {
-  name       = "keda"
-  repository = "https://kedacore.github.io/charts"
-  chart      = "keda"
-  namespace  = "default"
-
-  devel = "true"
-
-  set {
-    name  = "logLevel"
-    value = "debug"
-  }
+resource "azurerm_eventhub_consumer_group" "hcaas2" {
+  name                = "testConsumerGroup"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  eventhub_name       = azurerm_eventhub.providertesttpk2.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  user_metadata       = "some-meta-data-2"
 }
-
-# Event Hubs
-
-resource "azurerm_eventhub_namespace" "hubns" {
-  name                     = "${var.resource_name_prefix}-hubns-${var.tag_env}"
-  resource_group_name      = azurerm_resource_group.rg_keda.name
-  location                 = var.location
-  sku                      = "Standard"
-  capacity                 = var.eventhub_capacity
-  auto_inflate_enabled     = true
-  maximum_throughput_units = 20
-
-  tags = {
-    environment = var.tag_env
-  }
+resource "azurerm_eventhub_consumer_group" "hcaas3" {
+  name                = "testConsumerGroup"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  eventhub_name       = azurerm_eventhub.providertesttpk3.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  user_metadata       = "some-meta-data-3"
 }
-
-# Consumer topic
-
-resource "azurerm_eventhub" "rcvr_topic" {
-  name                = var.rcvr_topic
-  namespace_name      = azurerm_eventhub_namespace.hubns.name
-  resource_group_name = azurerm_eventhub_namespace.hubns.resource_group_name
-  partition_count     = var.rcvr_topic_partition_count
-  message_retention   = var.rcvr_topic_message_retention
-}
-
-resource "azurerm_eventhub_consumer_group" "group_rcvr_topic" {
-  name                = var.rcvr_topic_consumer_group_name
-  namespace_name      = azurerm_eventhub_namespace.hubns.name
-  eventhub_name       = azurerm_eventhub.rcvr_topic.name
-  resource_group_name = azurerm_eventhub_namespace.hubns.resource_group_name
+resource "azurerm_eventhub_consumer_group" "hcaas4" {
+  name                = "testConsumerGroup"
+  namespace_name      = azurerm_eventhub_namespace.mqkconnector.name
+  eventhub_name       = azurerm_eventhub.providertesttpk4.name
+  resource_group_name = azurerm_resource_group.mqktest.name
+  user_metadata       = "some-meta-data-4"
 }
