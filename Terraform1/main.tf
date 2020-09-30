@@ -1,78 +1,44 @@
-# Configure the Azure Provider
 provider "azurerm" {
-  # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=2.20.0"
+  version = ">= 2.0"
   features {}
 }
-variable "prefixes" {
-  default = "tfvmex"
+
+# Azure resource group
+
+resource "azurerm_resource_group" "rg_mqk" {
+  name     = var.resource_group_name
+  location = var.location
 }
 
-resource "azurerm_resource_group" "main" {
-  name     = "${var.prefixes}-resources"
-  location = "West US 2"
-}
+# Event Hubs
 
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.prefixes}-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-}
+resource "azurerm_eventhub_namespace" "hubns" {
+  name                     = "${var.resource_name_prefix}-hubns-${var.tag_env}"
+  resource_group_name      = azurerm_resource_group.rg_mqk.name
+  location                 = var.location
+  sku                      = "Standard"
+  capacity                 = var.eventhub_capacity
+  auto_inflate_enabled     = true
+  maximum_throughput_units = 20
 
-resource "azurerm_subnet" "internal" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes       = "10.0.2.0/24"
-}
-
-resource "azurerm_network_interface" "main" {
-  name                = "${var.prefixes}-nic"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.internal.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.prefixes}-vm"
-  location              = azurerm_resource_group.main.location
-  resource_group_name   = azurerm_resource_group.main.name
-  network_interface_ids = [azurerm_network_interface.main.id]
-  vm_size               = "Standard_DS1_v2"
-
-  # Uncomment this line to delete the OS disk automatically when deleting the VM
-  # delete_os_disk_on_termination = true
-
-  # Uncomment this line to delete the data disks automatically when deleting the VM
-  # delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
   tags = {
-    environment = "staging"
+    environment = var.tag_env
   }
+}
+
+# Consumer topic
+
+resource "azurerm_eventhub" "rcvr_topic" {
+  name                = var.rcvr_topic
+  namespace_name      = azurerm_eventhub_namespace.hubns.name
+  resource_group_name = azurerm_eventhub_namespace.hubns.resource_group_name
+  partition_count     = var.rcvr_topic_partition_count
+  message_retention   = var.rcvr_topic_message_retention
+}
+
+resource "azurerm_eventhub_consumer_group" "group_rcvr_topic" {
+  name                = var.rcvr_topic_consumer_group_name
+  namespace_name      = azurerm_eventhub_namespace.hubns.name
+  eventhub_name       = azurerm_eventhub.rcvr_topic.name
+  resource_group_name = azurerm_eventhub_namespace.hubns.resource_group_name
 }
