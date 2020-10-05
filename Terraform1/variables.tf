@@ -24,10 +24,16 @@ variable location {
 }
 
 # Event Hubs (topics)
-variable "rcvr_topic" {
+variable "rcvr_topic_1" {
   type        = string
-  description = "Receiver topic name"
-  default     = "receiver_topic"
+  description = "Receiver topic name-1"
+  default     = "receiver_topic_1"
+}
+# Event Hubs (topics)
+variable "rcvr_topic_2" {
+  type        = string
+  description = "Receiver topic name-2"
+  default     = "receiver_topic_2"
 }
 
 # Event Hubs (capacity)
