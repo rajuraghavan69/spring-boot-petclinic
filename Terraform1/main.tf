@@ -39,8 +39,6 @@ resource "azurerm_eventhub" "rcvr_topic_1" {
 
 resource "azurerm_eventhub" "rcvr_topic_2" {
   name                = var.rcvr_topic_2
-  namespace_name      = azurerm_eventhub_namespace.hubns.name
-  resource_group_name = azurerm_eventhub_namespace.hubns.resource_group_name
   partition_count     = var.rcvr_topic_partition_count
   message_retention   = var.rcvr_topic_message_retention
 }
